@@ -29,11 +29,36 @@ struct ContentView: View {
             .task {
                 if users.isEmpty {
                     await loadData()
+//                    testData()
                 }
             }
             .navigationTitle("Facemash")
         }
+    }
+    
+    func testData() {
+        let jsonData = """
+            {
+                "id": "50a48fa3-2c0f-4397-ac50-64da464f9954",
+                "isActive": false,
+                "name": "Alford Rodriguez",
+                "age": 21,
+                "company": "Imkan",
+                "email": "alfordrodriguez@imkan.com",
+                "address": "907 Nelson Street, Cotopaxi, South Dakota, 5913",
+                "about": "Occaecat consequat...",
+                "registered": "2015-11-10T01:47:18-00:00",
+                "tags": ["cillum", "consequat"],
+                "friends": [{"id": "91b5be3d-9a19-4ac2-b2ce-89cc41884ed0", "name": "Hawkins Patel"}]
+            }
+            """.data(using: .utf8)!
         
+        do {
+            let user = try JSONDecoder().decode(User.self, from: jsonData)
+            print("Successfully decoded user: \(user.name)")
+        } catch {
+            print("Decoding error: \(error)")
+        }
     }
     
     func loadData() async {

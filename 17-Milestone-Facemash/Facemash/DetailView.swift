@@ -5,6 +5,7 @@
 //  Created by Toto on 05/05/2025.
 //
 
+import SwiftData
 import SwiftUI
 
 struct DetailView: View {
@@ -82,26 +83,5 @@ struct DetailView: View {
         .navigationTitle("User Profile")
         .navigationBarTitleDisplayMode(.inline)
         .padding()
-    }
-}
-
-#Preview {
-    NavigationStack {
-        DetailView(user: User(
-            id: "1",
-            isActive: true,
-            name: "John Appleseed",
-            age: 30,
-            company: "Apple",
-            email: "john@apple.com",
-            address: "1 Infinite Loop, Cupertino, CA",
-            about: "Loves SwiftUI and building great apps.",
-            registered: Date.now,
-            tags: ["swift", "ios", "developer"],
-            friends: [
-                Friend(id: "2", name: "Tim Cook"),
-                Friend(id: "3", name: "Craig Federighi")
-            ]
-        ))
     }
 }
