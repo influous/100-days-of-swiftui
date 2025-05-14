@@ -66,6 +66,10 @@ struct ExpensesView: View {
             Text(item.amount, format: .currency(code: Locale.current.currency?.identifier ?? "USD"))
                 .foregroundColor(item.amount > 100 ? .red : (item.amount < 10 ? .green : .indigo))
         }
+        .accessibilityElement()
+        .accessibilityLabel(Text(item.amount, format: .currency(code: Locale.current.currency?.identifier ?? "USD")
+            ))
+        .accessibilityHint(item.type)
     }
     
     private func removeItems(at offsets: IndexSet) {

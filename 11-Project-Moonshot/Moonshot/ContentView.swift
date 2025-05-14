@@ -7,8 +7,6 @@
 
 import SwiftUI
 
-// @Observable
-
 struct ContentView: View {
     @State private var showingGrid = true
     @State private var path = NavigationPath()
@@ -17,12 +15,9 @@ struct ContentView: View {
     let missions: [Mission] = Bundle.main.decode("missions.json")
     
     var body: some View {
-//        Text(String(astronauts.count))
         NavigationStack(path: $path) {
             ScrollView {
                 Group {
-                    NavigationLink("Go to Random Number", value: Int.random(in: 1...1000))
-                    
                     if showingGrid {
                         GridLayout(astronauts: astronauts, missions: missions)
                             .padding([.horizontal, .bottom])
@@ -32,7 +27,6 @@ struct ContentView: View {
                     }
                 }
             }
-
             
             .navigationTitle("Moonshot")
             .background(.darkBackground)

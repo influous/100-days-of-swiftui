@@ -40,6 +40,7 @@ struct MissionView: View {
                             width * 0.6
                         }
                         .padding(.top)
+                        .accessibilityHidden(true)
                     
                     Text(mission.formattedLaunchDateLong) // Challenge 1
                         .font(.headline.bold())
