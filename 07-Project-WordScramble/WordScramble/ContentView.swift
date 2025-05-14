@@ -32,6 +32,8 @@ struct ContentView: View {
                             Image(systemName: "\(word.count).circle")
                             Text(word)
                         }
+                        .accessibilityElement()
+                        .accessibilityLabel("\(word), \(word.count) letters")
                         
                     }
                     
@@ -139,10 +141,8 @@ struct ContentView: View {
         }
         fatalError("Could not load start.txt from bundle")
     }
-    
-    struct ContentView_Previews: PreviewProvider {
-        static var previews: some View {
-            ContentView()
-        }
-    }
+}
+
+#Preview {
+    ContentView()
 }
