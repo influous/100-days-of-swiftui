@@ -18,6 +18,7 @@ struct AddPersonView: View {
     @State private var hasProvidedName: Bool = false
     @State private var persons: [Person] = []
     var onSave: (() -> Void)? = nil
+    let locationFetcher = LocationFetcher()
     
     var body: some View {
         NavigationView {
@@ -61,6 +62,7 @@ struct AddPersonView: View {
                 }
             }
         }
+        .onAppear(perform: locationFetcher.start)
     }
     
     func loadImage() {
@@ -85,6 +87,7 @@ struct AddPersonView: View {
             persons = []
         }
         
+        // Save image
         let filename = "\(UUID().uuidString).jpg"
         let imageURL = URL.documentsDirectory.appending(path: filename)
         
@@ -94,9 +97,11 @@ struct AddPersonView: View {
             if let data = imageToSave.jpegData(compressionQuality: 0.8) {
                 try data.write(to: imageURL, options: [.atomic, .completeFileProtection])
             }
-            
-            let newPerson = Person(id: UUID(), name: name, imageFilename: filename)
-            persons.append(newPerson)
+            if let coordinate = locationFetcher.lastKnownLocation {
+                let codableLocation = Location(from: coordinate)
+                let newPerson = Person(id: UUID(), name: name, imageFilename: filename, location: codableLocation)
+                persons.append(newPerson)
+            }
             
             let newPersonData = try JSONEncoder().encode(persons)
             try newPersonData.write(to: url, options: [.atomic, .completeFileProtection])
