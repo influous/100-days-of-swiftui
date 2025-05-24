@@ -15,32 +15,56 @@ struct ProspectsView: View {
         case none, contacted, uncontacted
     }
     
+    enum SortType: String, CaseIterable, Identifiable {
+        case name = "Name"
+        case recent = "Most Recent"
+        var id: String { self.rawValue }
+    }
+    
     let filter: FilterType
     
     var title: String {
         switch filter {
         case .none:
             "Everyone"
-            case .contacted:
+        case .contacted:
             "Contacted people"
         case .uncontacted:
             "Uncontacted people"
         }
     }
     @Environment(\.modelContext) private var modelContext
-    @Query(sort: \Prospect.name) var prospects: [Prospect]
+    @Query var allProspects: [Prospect]
+    
+    var prospects: [Prospect] {
+        switch sortType {
+        case .name:
+            return allProspects.sorted { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
+        case .recent:
+            return Array(allProspects.reversed())
+        }
+    }
     @State private var isShowingScanner = false
     @State private var selectedProspects = Set<Prospect>()
+    @State private var sortType: SortType = .name
     
     var body: some View {
         NavigationStack {
             List(prospects, selection: $selectedProspects) { prospect in
-                VStack(alignment: .leading) {
-                    Text(prospect.name)
-                        .font(.headline)
-                    
-                    Text(prospect.email)
-                        .foregroundStyle(.secondary)
+                NavigationLink(destination: EditView(prospect: prospect)) {
+                    HStack {
+                        Image(systemName: prospect.isContacted ? "person.crop.circle.badge.checkmark" : "person.crop.circle.badge.xmark")
+                            .foregroundStyle(prospect.isContacted ? .blue : .gray)
+                            .padding(.trailing, 4)
+                            .font(.title2)
+                        
+                        VStack(alignment: .leading) {
+                            Text(prospect.name)
+                                .font(.headline)
+                            Text(prospect.email)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
                 }
                 .swipeActions {
                     Button("Delete", systemImage: "trash", role: .destructive) {
@@ -66,27 +90,40 @@ struct ProspectsView: View {
                 }
                 .tag(prospect)
             }
-                .navigationTitle(title)
-                .toolbar {
-                    ToolbarItem(placement: .topBarTrailing) {
-                        Button("Scan", systemImage: "qrcode.viewfinder") {
-                            isShowingScanner = true
-                        }
+            .navigationTitle(title)
+            .onAppear {
+                selectedProspects.removeAll()
+            }
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button("Scan", systemImage: "qrcode.viewfinder") {
+                        isShowingScanner = true
                     }
-                    
-                    ToolbarItem(placement: .topBarLeading) {
-                        EditButton()
-                    }
-                    
-                    if selectedProspects.isEmpty == false {
-                        ToolbarItem(placement: .bottomBar) {
-                            Button("Delete Selected", action: delete)
+                }
+                
+                ToolbarItem(placement: .topBarTrailing) {
+                    Menu("Sort", systemImage: "arrow.up.arrow.down") {
+                        Picker("Sort", selection: $sortType) {
+                            ForEach(SortType.allCases) { type in
+                                Text(type.rawValue).tag(type)
+                            }
                         }
                     }
                 }
-                .sheet(isPresented: $isShowingScanner) {
-                    CodeScannerView(codeTypes: [.qr], simulatedData: "Tobias\ntobias@kook.work", completion: handleScan)
+                
+                ToolbarItem(placement: .topBarLeading) {
+                    EditButton()
                 }
+                
+                if selectedProspects.isEmpty == false {
+                    ToolbarItem(placement: .bottomBar) {
+                        Button("Delete Selected", action: delete)
+                    }
+                }
+            }
+            .sheet(isPresented: $isShowingScanner) {
+                CodeScannerView(codeTypes: [.qr], simulatedData: "Tobias\tobias@kook.work", completion: handleScan)
+            }
         }
     }
     
@@ -96,7 +133,7 @@ struct ProspectsView: View {
         if filter != .none {
             let showContactedOnly = filter == .contacted
             
-            _prospects = Query(filter: #Predicate {
+            _allProspects = Query(filter: #Predicate {
                 $0.isContacted == showContactedOnly
             }, sort: [SortDescriptor(\Prospect.name)])
         }
@@ -137,9 +174,6 @@ struct ProspectsView: View {
             var dateComponents = DateComponents()
             dateComponents.hour = 9
             let trigger = UNCalendarNotificationTrigger(dateMatching: dateComponents, repeats: false)
-            
-//            let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 5, repeats: false)
-            
             let request = UNNotificationRequest(identifier: UUID().uuidString, content: content, trigger: trigger)
             center.add(request)
         }
