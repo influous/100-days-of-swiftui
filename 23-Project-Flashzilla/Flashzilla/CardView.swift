@@ -9,14 +9,22 @@ import SwiftUI
 
 struct CardView: View {
     let card: Card
-    let removal: (() -> Void)?
+    let removal: ((_ wasWrong: Bool) -> Void)?
     
     @Environment(\.accessibilityDifferentiateWithoutColor) var accessibilityDifferentiateWithoutColor
     @State private var isShowingAnswer = false
     @State private var offset = CGSize.zero // no drag by default
     @Environment(\.accessibilityVoiceOverEnabled) var accessibilityVoiceOverEnabled
     
-    init(card: Card, removal: @escaping () -> Void) {
+    var cardBackgroundColor: Color {
+        if offset == .zero {
+            return .white
+        } else {
+            return offset.width > 0 ? .green : .red
+        }
+    }
+    
+    init(card: Card, removal: @escaping (_ wasWrong: Bool) -> Void) {
         self.card = card
         self.removal = removal
     }
@@ -34,7 +42,7 @@ struct CardView: View {
                     accessibilityDifferentiateWithoutColor
                     ? nil
                     : RoundedRectangle(cornerRadius: 25)
-                        .fill(offset.width > 0 ? .green : .red))
+                        .fill(cardBackgroundColor))
                 .shadow(radius: 10)
             
             VStack {
@@ -68,7 +76,7 @@ struct CardView: View {
             }
             .onEnded { _ in
                 if abs(offset.width) > 100 {
-                    removal?()
+                    removal?(offset.width < 0) // true if wrong
                 } else {
                     offset = .zero
                 }
@@ -82,5 +90,5 @@ struct CardView: View {
 }
 
 #Preview {
-    CardView(card: .example) { }
+    CardView(card: .example) { wasWrong in }
 }
